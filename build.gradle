@@ -1,0 +1,86 @@
+
+
+buildscript {
+    dependencies {
+        classpath "io.spring.gradle:dependency-management-plugin:1.0.6.RELEASE"
+    }
+}
+
+plugins {
+    id 'java'
+    id 'maven'
+    id 'maven-publish'
+}
+
+apply plugin: "io.spring.dependency-management"
+
+group 'com.cyberway.msf'
+version '1.0.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+compileJava.options.encoding = 'UTF-8'
+compileTestJava.options.encoding = 'UTF-8'
+javadoc {
+    options {
+        encoding 'UTF-8'
+    }
+}
+
+repositories {
+    mavenLocal()
+    maven { url 'http://192.168.0.5:8980/repository/maven-public/' }
+    mavenCentral()
+    maven { url 'https://repo.spring.io/release/' }
+    maven { url 'https://repo.spring.io/libs-milestone' }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom 'com.cyberway.msf:cyberway-msf-dependencies:1.0.0'
+    }
+}
+dependencies {
+    provided 'org.springframework.boot:spring-boot-starter:2.0.6.RELEASE'
+    provided 'org.springframework.boot:spring-boot-configuration-processor:2.0.6.RELEASE'
+    compile 'org.aspectj:aspectjweaver:1.8.13'
+    compile 'org.springframework.boot:spring-boot-starter-amqp:2.0.6.RELEASE'
+    provided 'com.cyberway.msf:cyberway-msf-commons-base'
+    
+}
+
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allJava
+    classifier = 'sources'
+}
+
+task javadocJar(type: Jar) {
+    from javadoc
+    classifier = 'javadoc'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId project.group
+            artifactId project.name
+            version project.version
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+        }
+    }
+    repositories {
+        maven {
+            url = 'http://192.168.0.5:8980/repository/maven-snapshots/'
+            credentials {
+                username "${cyberway_maven_username?cyberway_maven_username:'guest'}"
+                password "${cyberway_maven_password?cyberway_maven_password:'guest'}"
+            }
+        }
+    }
+}
+
+
+
